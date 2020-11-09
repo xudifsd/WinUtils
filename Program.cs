@@ -8,14 +8,16 @@ namespace Utils
     {
         private static readonly Dictionary<string, IRunnable> UTILS_MAP = new Dictionary<string, IRunnable>
         {
-            {"find", new Find()},
+            {"find", new Find()}, // TODO make it a class instead of instance
+            {"ack", new Ack()},
+            {"upgrade", new Upgrade()},
         };
 
         public static int Main(string[] args)
         {
             if (args.Length == 0)
             {
-                Console.Error.WriteLine("Need at least a cmd");
+                Console.Error.WriteLine("Need at least a cmd: " + string.Join(",", UTILS_MAP.Keys.ToArray()));
                 return 1;
             }
             else
