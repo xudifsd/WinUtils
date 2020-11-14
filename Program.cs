@@ -11,6 +11,7 @@ namespace Utils
             {"find", new Find()}, // TODO make it a class instead of instance
             {"ack", new Ack()},
             {"upgrade", new Upgrade()},
+            {"drop", new Drop()},
         };
 
         public static int Main(string[] args)
