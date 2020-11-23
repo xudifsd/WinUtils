@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
@@ -16,16 +16,19 @@ namespace Utils
             var cmd = new RootCommand
             {
                 new Argument<string>("pattern", "pattern to search"),
+                new Option<bool>(new[] { "--ignore-case", "-i" }, description: "ignore case when searching",
+                    getDefaultValue: () => false),
             };
 
-            cmd.Handler = CommandHandler.Create<string>(Search);
+            cmd.Handler = CommandHandler.Create<string, bool>(Search);
 
             return cmd.Invoke(args);
         }
 
-        private static int Search(string pattern)
+        private static int Search(string pattern, bool ignoreCase)
         {
-            SearchInDirectory(new DirectoryInfo("."), pattern);
+            RegexOptions options = ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None;
+            SearchInDirectory(new DirectoryInfo("."), pattern, options);
             return 0;
         }
 
@@ -34,7 +37,7 @@ namespace Utils
             return content.Any(ch => char.IsControl(ch) && ch != '\r' && ch != '\n');
         }
 
-        private static void SearchInFile(System.IO.FileInfo file, string pattern)
+        private static void SearchInFile(System.IO.FileInfo file, string pattern, RegexOptions options)
         {
             try
             {
@@ -45,7 +48,7 @@ namespace Utils
                     {
                         break;
                     }
-                    if (Regex.Match(line, pattern).Success)
+                    if (Regex.Match(line, pattern, options).Success)
                     {
                         output = true;
                         Console.Out.WriteLine($"{file.FullName}: {idx + 1}: {line}");
@@ -62,7 +65,7 @@ namespace Utils
             }
         }
 
-        private static void SearchInDirectory(DirectoryInfo root, string pattern)
+        private static void SearchInDirectory(DirectoryInfo root, string pattern, RegexOptions options)
         {
             System.IO.FileInfo[] files = null;
             System.IO.DirectoryInfo[] subDirs = null;
@@ -86,14 +89,14 @@ namespace Utils
             {
                 foreach (System.IO.FileInfo fi in files)
                 {
-                    SearchInFile(fi, pattern);
+                    SearchInFile(fi, pattern, options);
                 }
 
                 subDirs = root.GetDirectories();
 
                 foreach (System.IO.DirectoryInfo dirInfo in subDirs)
                 {
-                    SearchInDirectory(dirInfo, pattern);
+                    SearchInDirectory(dirInfo, pattern, options);
                 }
             }
         }

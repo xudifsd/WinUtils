@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using System.IO;
@@ -17,31 +17,35 @@ namespace Utils
                 new Argument<string>("path", "The start point of find"),
                 new Option<string?>("-type", "[d|f]"),
                 new Option<string?>("-regex", "regex"),
+                new Option<bool>(new[] { "--ignore-case", "-i" }, description: "ignore case when searching",
+                    getDefaultValue: () => false),
             };
 
-            cmd.Handler = CommandHandler.Create<string, string?, string?>(Walk);
+            cmd.Handler = CommandHandler.Create<string, string?, string?, bool>(Walk);
 
             return cmd.Invoke(args);
         }
 
-        private static int Walk(string path, string? type, string? regex)
+        private static int Walk(string path, string? type, string? regex, bool ignoreCase)
         {
             if (type != null && type != "d" && type != "f")
             {
-                Console.Error.WriteLine($"unexpected type {type}");
                 return 1;
             }
 
-            WalkDirectoryTree(new DirectoryInfo(path), type, regex);
+            RegexOptions options = ignoreCase ? RegexOptions.IgnoreCase : RegexOptions.None;
+            Console.WriteLine($"ignoreCase is {ignoreCase}");
+
+            WalkDirectoryTree(new DirectoryInfo(path), type, regex, options);
             return 0;
         }
 
-        private static void OutputPathAccordingly(string path, string? regex)
+        private static void OutputPathAccordingly(string path, string? regex, RegexOptions options)
         {
             bool output = true;
             if (regex != null)
             {
-                Match m = Regex.Match(path, regex);
+                Match m = Regex.Match(path, regex, options);
                 output = m.Success;
             }
 
@@ -51,7 +55,7 @@ namespace Utils
             }
         }
 
-        private static void WalkDirectoryTree(DirectoryInfo root, string? type, string? regex)
+        private static void WalkDirectoryTree(DirectoryInfo root, string? type, string? regex, RegexOptions options)
         {
             System.IO.FileInfo[] files = null;
             System.IO.DirectoryInfo[] subDirs = null;
@@ -77,7 +81,7 @@ namespace Utils
                 {
                     foreach (System.IO.FileInfo fi in files)
                     {
-                        OutputPathAccordingly(fi.FullName, regex);
+                        OutputPathAccordingly(fi.FullName, regex, options);
                     }
                 }
 
@@ -87,9 +91,9 @@ namespace Utils
                 {
                     if (type == null || type == "d")
                     {
-                        OutputPathAccordingly(dirInfo.FullName, regex);
+                        OutputPathAccordingly(dirInfo.FullName, regex, options);
                     }
-                    WalkDirectoryTree(dirInfo, type, regex);
+                    WalkDirectoryTree(dirInfo, type, regex, options);
                 }
             }
         }
