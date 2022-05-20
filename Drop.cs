@@ -14,6 +14,7 @@ namespace Utils
         {
             {"urp", "?root=retail/amd64/app/UrpService"},
             {"reco", "?root=retail/amd64/app/RecommendationWebApi"},
+            {"recoservice", "?root=retail/amd64/app/RecoService"},
         };
 
         public Drop() { }
