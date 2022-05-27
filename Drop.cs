@@ -61,7 +61,11 @@ namespace Utils
             List<string> args = null;
             if (svc == null)
             {
-                args = SVC_MAPPING.Values.ToList();
+                args = new List<string>
+                {
+                    SVC_MAPPING["recoservice"],
+                    SVC_MAPPING["reco"]
+                };
             }
             else
             {
@@ -81,7 +85,7 @@ namespace Utils
                 using System.Diagnostics.Process pProcess = new System.Diagnostics.Process();
                 var urlWithArg = url + arg;
 
-                pProcess.StartInfo.FileName = "drop.cmd";
+                pProcess.StartInfo.FileName = "drop.exe";
                 pProcess.StartInfo.Arguments = $"get -a -u {urlWithArg} -d {dir}";
                 pProcess.StartInfo.UseShellExecute = false;
                 pProcess.StartInfo.RedirectStandardError = true;
@@ -101,12 +105,13 @@ namespace Utils
                     hasError = true;
                 }
                 // TODO handle Ctrl-C and end pProcess.
+
+                if (clean)
+                {
+                    CleanPdp(new DirectoryInfo(dir));
+                }
             }
 
-            if (clean)
-            {
-                CleanPdp(new DirectoryInfo(dir));
-            }
             return hasError ? 2 : 0;
         }
     }
